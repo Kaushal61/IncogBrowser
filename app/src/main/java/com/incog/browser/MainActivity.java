@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
+import android.webkit.CookieManager;
 import android.webkit.URLUtil;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -34,7 +35,12 @@ public class MainActivity extends Activity {
         incognitoToggle = findViewById(R.id.btnIncognito);
         desktopToggle = findViewById(R.id.btnDesktop);
 
+        // App start hote hi pehle mode check karega
+        SharedPreferences prefs = getSharedPreferences("IncogPrefs", MODE_PRIVATE);
+        isIncognito = prefs.getBoolean("is_incognito", false);
+        
         setupWebView();
+        updateBrowserMode(); // Storage/Cookies ko mode ke hisaab se set karega
 
         urlBar.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO || actionId == EditorInfo.IME_ACTION_SEARCH ||
@@ -56,11 +62,10 @@ public class MainActivity extends Activity {
 
         incognitoToggle.setOnClickListener(v -> {
             isIncognito = !isIncognito;
-            
-            SharedPreferences prefs = getSharedPreferences("IncogPrefs", MODE_PRIVATE);
             prefs.edit().putBoolean("is_incognito", isIncognito).apply();
 
             Intent serviceIntent = new Intent(MainActivity.this, ClearService.class);
+            updateBrowserMode(); // Click karte hi mode update hoga
 
             if (isIncognito) {
                 incognitoToggle.setText("🕵️"); 
@@ -92,7 +97,40 @@ public class MainActivity extends Activity {
     private void setupWebView() {
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
         webView.setWebViewClient(new WebViewClient());
     }
-                }
+
+    // YEH FUNCTION DECIDE KAREGA KI KAB DATA SAVE KARNA HAI AUR KAB NAHI
+    private void updateBrowserMode() {
+        WebSettings settings = webView.getSettings();
+        CookieManager cookieManager = CookieManager.getInstance();
+
+        if (isIncognito) {
+            // INCOGNITO MODE: Storage band, history clear. Normal mode ko touch nahi karega.
+            settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+            settings.setDomStorageEnabled(false);
+            settings.setDatabaseEnabled(false);
+            cookieManager.setAcceptCookie(false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                cookieManager.setAcceptThirdPartyCookies(webView, false);
+            }
+            webView.clearHistory();
+            webView.clearCache(true);
+        } else {
+            // NORMAL MODE: Chrome ki tarah har tarah ka data permanently save karega
+            settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+            settings.setDomStorageEnabled(true);
+            settings.setDatabaseEnabled(true);
+            cookieManager.setAcceptCookie(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                cookieManager.setAcceptThirdPartyCookies(webView, true);
+            }
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        CookieManager.getInstance().flush(); // App background me jaate hi data phone storage me force save
+    }
+    }
