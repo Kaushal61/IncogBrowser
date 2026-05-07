@@ -4,21 +4,52 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:id="@+id/rootLayout"
     android:background="#FFFFFF">
 
-    <EditText
-        android:id="@+id/urlBar"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter URL..."
-        android:imeOptions="actionGo"
-        android:inputType="textUri"
-        android:maxLines="1"
-        android:padding="12dp" />
+        android:orientation="horizontal"
+        android:background="#F5F5F5"
+        android:padding="4dp">
+
+        <Button
+            android:id="@+id/btnIncognito"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔒"
+            android:background="@android:color/transparent"
+            android:textSize="18sp"
+            android:padding="4dp"/>
+
+        <EditText
+            android:id="@+id/urlBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Search or URL..."
+            android:imeOptions="actionGo"
+            android:inputType="textUri"
+            android:maxLines="1"
+            android:padding="8dp"
+            android:background="@android:color/white"
+            android:textSize="14sp"/>
+
+        <Button
+            android:id="@+id/btnDesktop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🖥️"
+            android:background="@android:color/transparent"
+            android:textSize="18sp"
+            android:padding="4dp"/>
+
+    </LinearLayout>
 
     <WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"/>
 
 </LinearLayout>
