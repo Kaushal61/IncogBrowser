@@ -1,11 +1,18 @@
 package com.incog.browser;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
+import android.webkit.CookieManager;
 import java.io.File;
 
 public class ClearService extends Service {
+
+    private static final String CHANNEL_ID = "incog_clear";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -14,19 +21,49 @@ public class ClearService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        startForegroundWithNotification();
         return START_NOT_STICKY;
+    }
+
+    private void startForegroundWithNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                CHANNEL_ID,
+                "IncogBrowser",
+                NotificationManager.IMPORTANCE_MIN
+            );
+            channel.setShowBadge(false);
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            nm.createNotificationChannel(channel);
+        }
+
+        Notification notification = new Notification.Builder(this, CHANNEL_ID)
+            .setContentTitle("IncogBrowser")
+            .setContentText("Incognito mode active")
+            .setSmallIcon(android.R.drawable.ic_menu_close_clear_cancel)
+            .build();
+
+        startForeground(1, notification);
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         try {
+            // Cookies
+            CookieManager.getInstance().removeAllCookies(null);
+            CookieManager.getInstance().flush();
+
+            // OS level folders
             File dataDir = new File(getApplicationInfo().dataDir);
             deleteDir(new File(dataDir, "app_webview"));
+            deleteDir(new File(dataDir, "cache"));
+            deleteDir(new File(dataDir, "code_cache"));
             deleteDir(getCacheDir());
         } catch (Exception e) {
             e.printStackTrace();
         }
+        stopForeground(true);
         stopSelf();
     }
 
@@ -39,4 +76,4 @@ public class ClearService extends Service {
         }
         if (dir != null) dir.delete();
     }
-}
+    }
