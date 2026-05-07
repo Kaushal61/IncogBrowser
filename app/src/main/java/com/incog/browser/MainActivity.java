@@ -1,5 +1,6 @@
 package com.incog.browser;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -12,10 +13,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
-import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private WebView webView;
     private EditText urlBar;
@@ -30,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Screenshot ke hisaab se IDs update kar di hain
         webView = findViewById(R.id.webView);
         urlBar = findViewById(R.id.urlBar);
         incognitoToggle = findViewById(R.id.btnIncognito);
@@ -38,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
 
         setupWebView();
 
-        // Smart Search Logic (URL vs Google Search)
         urlBar.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO || actionId == EditorInfo.IME_ACTION_SEARCH ||
                (event != null && event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
@@ -57,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        // Incognito Toggle Logic
         incognitoToggle.setOnClickListener(v -> {
             isIncognito = !isIncognito;
             
@@ -68,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
 
             if (isIncognito) {
                 incognitoToggle.setText("🕵️"); 
-                // Service aur Notification start karo
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     startForegroundService(serviceIntent);
                 } else {
@@ -76,12 +71,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else {
                 incognitoToggle.setText("🔒"); 
-                // Service aur Notification band karo
                 stopService(serviceIntent);
             }
         });
 
-        // Desktop Mode Toggle Logic
         desktopToggle.setOnClickListener(v -> {
             isDesktop = !isDesktop;
             WebSettings settings = webView.getSettings();
@@ -102,4 +95,4 @@ public class MainActivity extends AppCompatActivity {
         settings.setDomStorageEnabled(true);
         webView.setWebViewClient(new WebViewClient());
     }
-                    }
+                }
