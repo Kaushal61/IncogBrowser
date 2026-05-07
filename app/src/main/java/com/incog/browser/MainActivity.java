@@ -35,12 +35,11 @@ public class MainActivity extends Activity {
         incognitoToggle = findViewById(R.id.btnIncognito);
         desktopToggle = findViewById(R.id.btnDesktop);
 
-        // App start hote hi pehle mode check karega
         SharedPreferences prefs = getSharedPreferences("IncogPrefs", MODE_PRIVATE);
         isIncognito = prefs.getBoolean("is_incognito", false);
         
         setupWebView();
-        updateBrowserMode(); // Storage/Cookies ko mode ke hisaab se set karega
+        updateBrowserMode(); 
 
         urlBar.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO || actionId == EditorInfo.IME_ACTION_SEARCH ||
@@ -65,7 +64,7 @@ public class MainActivity extends Activity {
             prefs.edit().putBoolean("is_incognito", isIncognito).apply();
 
             Intent serviceIntent = new Intent(MainActivity.this, ClearService.class);
-            updateBrowserMode(); // Click karte hi mode update hoga
+            updateBrowserMode(); 
 
             if (isIncognito) {
                 incognitoToggle.setText("🕵️"); 
@@ -100,24 +99,27 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient());
     }
 
-    // YEH FUNCTION DECIDE KAREGA KI KAB DATA SAVE KARNA HAI AUR KAB NAHI
     private void updateBrowserMode() {
         WebSettings settings = webView.getSettings();
         CookieManager cookieManager = CookieManager.getInstance();
 
         if (isIncognito) {
-            // INCOGNITO MODE: Storage band, history clear. Normal mode ko touch nahi karega.
+            // INCOGNITO MODE: Data save nahi hoga
             settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
             settings.setDomStorageEnabled(false);
             settings.setDatabaseEnabled(false);
-            cookieManager.setAcceptCookie(false);
+            
+            // YAHAN FIX HAI: Website tootne se bachane ke liye primary cookies allow ki hain
+            cookieManager.setAcceptCookie(true); 
+            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                // Lekin dusri websites ke trackers (3rd party) ko block kar diya hai
                 cookieManager.setAcceptThirdPartyCookies(webView, false);
             }
             webView.clearHistory();
             webView.clearCache(true);
         } else {
-            // NORMAL MODE: Chrome ki tarah har tarah ka data permanently save karega
+            // NORMAL MODE
             settings.setCacheMode(WebSettings.LOAD_DEFAULT);
             settings.setDomStorageEnabled(true);
             settings.setDatabaseEnabled(true);
@@ -131,6 +133,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        CookieManager.getInstance().flush(); // App background me jaate hi data phone storage me force save
+        CookieManager.getInstance().flush(); 
     }
-    }
+                    }
