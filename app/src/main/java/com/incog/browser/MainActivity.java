@@ -30,11 +30,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // IDs ko link kiya hai - NOTE: Apne activity_main.xml me IDs check kar lena
-        webView = findViewById(R.id.webview);
-        urlBar = findViewById(R.id.url_bar);
-        incognitoToggle = findViewById(R.id.btn_incognito);
-        desktopToggle = findViewById(R.id.btn_desktop);
+        // Screenshot ke hisaab se IDs update kar di hain
+        webView = findViewById(R.id.webView);
+        urlBar = findViewById(R.id.urlBar);
+        incognitoToggle = findViewById(R.id.btnIncognito);
+        desktopToggle = findViewById(R.id.btnDesktop);
 
         setupWebView();
 
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        // BUG 2 FIX: Incognito Toggle Logic
+        // Incognito Toggle Logic
         incognitoToggle.setOnClickListener(v -> {
             isIncognito = !isIncognito;
             
@@ -102,4 +102,4 @@ public class MainActivity extends AppCompatActivity {
         settings.setDomStorageEnabled(true);
         webView.setWebViewClient(new WebViewClient());
     }
-            }
+                    }
