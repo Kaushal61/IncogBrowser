@@ -2,6 +2,7 @@ package com.incog.browser;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -45,24 +46,23 @@ public class MainActivity extends Activity {
 
         startService(new Intent(this, ClearService.class));
 
-        rootLayout  = findViewById(R.id.rootLayout);
-        urlBar      = findViewById(R.id.urlBar);
-        webView     = findViewById(R.id.webView);
+        rootLayout   = findViewById(R.id.rootLayout);
+        urlBar       = findViewById(R.id.urlBar);
+        webView      = findViewById(R.id.webView);
         btnIncognito = findViewById(R.id.btnIncognito);
-        btnDesktop  = findViewById(R.id.btnDesktop);
+        btnDesktop   = findViewById(R.id.btnDesktop);
 
         setupWebView();
 
-        // Incognito toggle
         btnIncognito.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 isIncognito = !isIncognito;
+                saveIncognitoState(isIncognito);
                 applyIncognitoMode();
             }
         });
 
-        // Desktop toggle
         btnDesktop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -71,7 +71,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        // URL bar
         urlBar.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId,
@@ -85,6 +84,11 @@ public class MainActivity extends Activity {
                 return false;
             }
         });
+    }
+
+    private void saveIncognitoState(boolean state) {
+        SharedPreferences prefs = getSharedPreferences("incog_prefs", MODE_PRIVATE);
+        prefs.edit().putBoolean("is_incognito", state).apply();
     }
 
     private void setupWebView() {
@@ -110,7 +114,6 @@ public class MainActivity extends Activity {
     private void loadSmartUrl(String input) {
         String url;
         if (input.contains(".") && !input.contains(" ")) {
-            // URL hai
             if (!input.startsWith("http://") &&
                 !input.startsWith("https://")) {
                 url = "https://" + input;
@@ -118,7 +121,6 @@ public class MainActivity extends Activity {
                 url = input;
             }
         } else {
-            // Google search
             url = "https://www.google.com/search?q=" +
                   input.replace(" ", "+");
         }
@@ -128,7 +130,6 @@ public class MainActivity extends Activity {
     private void applyIncognitoMode() {
         WebSettings s = webView.getSettings();
         if (isIncognito) {
-            // Incognito ON
             btnIncognito.setText("🕵️");
             rootLayout.setBackgroundColor(Color.parseColor("#1A1A1A"));
             s.setDomStorageEnabled(false);
@@ -137,8 +138,6 @@ public class MainActivity extends Activity {
             webView.clearCache(true);
             webView.clearHistory();
         } else {
-            // Incognito OFF — normal mode
-            // Pehle incognito data nuke karo
             nukeIncognitoData();
             btnIncognito.setText("🔒");
             rootLayout.setBackgroundColor(Color.WHITE);
@@ -185,7 +184,10 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        if (isIncognito) nukeIncognitoData();
+        if (isIncognito) {
+            nukeIncognitoData();
+            saveIncognitoState(false);
+        }
         super.onDestroy();
     }
 
@@ -194,7 +196,10 @@ public class MainActivity extends Activity {
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
         } else {
-            if (isIncognito) nukeIncognitoData();
+            if (isIncognito) {
+                nukeIncognitoData();
+                saveIncognitoState(false);
+            }
             super.onBackPressed();
         }
     }
