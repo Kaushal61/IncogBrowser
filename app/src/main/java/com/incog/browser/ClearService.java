@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
 import android.webkit.CookieManager;
-import android.webkit.WebStorage;
 
 public class ClearService extends Service {
     private static final String CHANNEL_ID = "IncognitoChannel";
@@ -29,13 +28,12 @@ public class ClearService extends Service {
             builder = new Notification.Builder(this);
         }
 
-        // Notification jo Incognito ON hone pe dikhegi
         builder.setContentTitle("Incognito Mode ON")
                .setContentText("Your browsing data won't be saved.")
-               .setSmallIcon(android.R.drawable.ic_secure); // Yeh default lock icon hai
+               .setSmallIcon(android.R.drawable.ic_secure); 
 
         startForeground(1, builder.build());
-        return START_NOT_STICKY; // Low RAM (2GB) phones ke liye best hai, auto-restart nahi hoga
+        return START_NOT_STICKY; 
     }
 
     @Override
@@ -45,10 +43,9 @@ public class ClearService extends Service {
         SharedPreferences prefs = getSharedPreferences("IncogPrefs", MODE_PRIVATE);
         boolean isIncognito = prefs.getBoolean("is_incognito", false);
 
-        // BUG 1 FIX: Sirf tab data clear hoga jab Incognito ON hoga
         if (isIncognito) {
-            WebStorage.getInstance().deleteAllData();
-            CookieManager.getInstance().removeAllCookies(null);
+            // Sirf session cookies hatayega. Normal mode ka data aur YouTube logins bilkul safe rahenge!
+            CookieManager.getInstance().removeSessionCookies(null);
             CookieManager.getInstance().flush();
             prefs.edit().putBoolean("is_incognito", false).apply();
         }
